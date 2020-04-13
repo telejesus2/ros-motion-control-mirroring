@@ -1,0 +1,23 @@
+#!/bin/bash  
+echo "This is a shell script" 
+
+VAR1="source /opt/ros/kinetic/setup.bash; source /home/aimove/ros/urdriver_ws/devel/setup.bash; source /home/aimove/ros/ur_ws/devel/setup.bash; source /home/aimove/ros/jogarm_ws/devel/setup.bash"
+
+xterm -hold -title "master" -e "$VAR1; roslaunch ur_modern_driver ur3_bringup.launch robot_ip:=10.201.20.30" &
+sleep 3
+xterm -hold -title "moveit" -e "$VAR1; roslaunch ur3_moveit_config ur3_moveit_planning_execution.launch" &
+sleep 3
+#xterm -hold -title "App 3" -e "$VAR1; roslaunch ur3_moveit_config moveit_rviz.launch config:=true" &
+#sleep 3
+xterm -hold -title "jogarm" -e "$VAR1; roslaunch jog_arm jog_node_fk.launch" &
+sleep 3
+xterm -hold -title "gripper" -e "source /opt/ros/kinetic/setup.bash; source /home/aimove/ros/urdriver_ws/devel/setup.bash; source /home/aimove/ros/ur_ws/devel/setup.bash; source /home/aimove/ros/robotiq_ur/devel/setup.bash; rosrun robotiq sample_node" &
+sleep 3
+xterm -hold -title "openpose" -e "$VAR1; rosrun ur_modern_driver angle_publisher.py" &
+sleep 3
+xterm -hold -title "controller" -e "$VAR1; rosrun ur_modern_driver mirroring_jogarm_joints.py" &
+
+
+
+
+

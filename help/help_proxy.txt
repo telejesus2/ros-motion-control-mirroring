@@ -1,0 +1,37 @@
+------------------------------------- setting the proxy
+
+HTTP Proxy 	new-proxy.mines-paristech.fr	3128
+HTTPS Proxy	new-proxy.mines-paristech.fr	3128
+FTP Proxy	new-proxy.mines-paristech.fr	3128
+
+sudo gedit /etc/environment
+	http_proxy=http://new-proxy.mines-paristech.fr:3128/
+	https_proxy=https://new-proxy.mines-paristech.fr:3128/
+	ftp_proxy=http://new-proxy.mines-paristech.fr:3128/
+
+gedit /etc/apt/apt.conf
+	Acquire::http::proxy "http://new-proxy.mines-paristech.fr:3128/";
+	Acquire::ftp::proxy "ftp://new-proxy.mines-paristech.fr:3128/";
+	Acquire::https::proxy "https://new-proxy.mines-paristech.fr:3128/";
+
+-------------------------------------- KEY for apt repository
+
+go to https://keyserver.ubuntu.com/
+	search for the key you want
+	copy content on file spotify.pgp , for example :
+
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: SKS 1.1.6
+Comment: Hostname: keyserver.ubuntu.com
+
+mQGiBEsy5KkRBADJbDSISoamRM5AA20bfAeBuhhaI+VaiCVcxw90sq9AI5lIc42FWzM2acm8
+yplqWiehAqOLKd+iIrqNGZ+VavZEPTx7o06UZUMRoPBiTFaCwrQ5avKzlt7ij8PRMVWNrJ7A
+2lDYXfFQVV1o3Xo06qVnv0KLLUmiur0LBu4H/oTH3wCgt+/ID3LUKaMJsc77KwFBTjHB0EsD
+SQQYEQIACQUCSzLkrgIbDAAKCRBVI7rusB+hFpryAJ4puo6cMZxa6wITHFAM/k84+aRijwCe
+ItuWpUngP25xDuDGMsKarcNiqYGISQQYEQIACQUCSzLkrgIbDAAKCRBVI7rusB+hFpryAJ9q
+Nz3h3ijt9TkAV0CHufsPT6Cl4gCglfg7tJn2lsSF3HTpoDDO1Fggx9o=
+=Ggee
+-----END PGP PUBLIC KEY BLOCK-----
+
+	$ sudo apt-key add spotify.pgp
+	OK

@@ -1,0 +1,123 @@
+# install universal robot
+sudo apt install ros-kinetic-universal-robot
+
+# create package for ur_modern_driver
+	cd /path/to/catkin_ws/src
+
+	# retrieve the sources (note: "kinetic-devel" builds on Indigo, Kinetic and Melodic)
+	git clone -b kinetic-devel https://github.com/ros-industrial/ur_modern_driver.git		// git clone https://github.com/iron-ox/ur_modern_driver.git for compatibility with jog_arm
+													// git clone -b kinetic https://github.com/ros-industrial/universal_robot.git for universal robot
+													// git clone -b kinetic https://github.com/UTNuclearRoboticsPublic/jog_arm.git for jog_arm
+	cd /path/to/catkin_ws
+
+	# checking dependencies
+	rosdep update
+	rosdep install --from-paths src --ignore-src --rosdistro kinetic
+
+	# building
+	catkin_make
+
+	# activate the workspace (careful when also using other workspaces)
+	source /path/to/catkin_ws/devel/setup.bash
+
+---------------------------------------------------------------------------------------------
+
+# make contact
+roslaunch ur_modern_driver ur3_bringup.launch robot_ip:=10.201.20.30
+
+# run test
+rosrun ur_modern_driver test_move.py
+
+---------------------------------------------------------------------------------------------
+
+MOVE IT
+
+// need to install PyAssimp version 3.3 (on ubuntu 16)
+sudo rm -rf /usr/lib/python2.7/dist-packages/pyassimp 	// y otros documentos que haya que dependan de pyassimp
+python -m pip install --user pyassimp==3.3
+
+roslaunch ur3_moveit_config ur3_moveit_planning_execution.launch
+roslaunch ur3_moveit_config moveit_rviz.launch config:=true
+
+# interesting files
+// ur3.srdf 		at ~/ros/ur_ws/src/universal_robot/ur3_moveit_config/config 	// see group names for move_group	// I changed virtual joint
+// joint_limits.yaml 	at ~/ros/ur_ws/src/universal_robot/ur3_moveit_config/config
+// URDF 		at ~/ros/ur_ws/src/universal_robot/ur_description/urdf
+// kinematics.yaml	at ~/ros/ur_ws/src/universal_robot/ur3_moveit_config/config	// I added "position_only_ik: True"
+
+# limited joints version restricted to [-pi,pi]
+roslaunch ur_modern_driver ur3_bringup.launch limited:=true robot_ip:=10.201.20.30
+roslaunch ur3_moveit_config ur3_moveit_planning_execution.launch limited:=true
+roslaunch ur3_moveit_config moveit_rviz.launch config:=true
+
+---------------------------------------------------------------------------------------------
+
+ROS CONTROL
+
+https://answers.ros.org/question/84806/using-moveit-to-actually-control-a-robot/
+http://wiki.ros.org/joint_trajectory_controller
+http://gazebosim.org/tutorials/?tut=ros_control
+http://docs.ros.org/kinetic/api/moveit_tutorials/html/doc/controller_configuration/controller_configuration_tutorial.html
+https://slaterobots.com/blog/5abd8a1ed4442a651de5cb5b/how-to-implement-ros_control-on-a-custom-robot
+
+
+
+roslaunch ur_modern_driver ur3_ros_control.launch robot_ip:=10.201.20.30
+< after this i can launch the two moveit commands >
+
+To use ros_control together with MoveIt, be sure to add the desired controller to the controllers.yaml in the urXX_moveit_config/config folder. Add the following:
+
+	controller_list:
+	 - name: /vel_based_pos_traj_controller #or /pos_based_pos_traj_controller
+	   action_ns: follow_joint_trajectory
+	   type: FollowJointTrajectory
+	   default: true
+	   joints:
+	      - shoulder_pan_joint
+	      - shoulder_lift_joint
+	      - elbow_joint
+	      - wrist_1_joint
+	      - wrist_2_joint
+	      - wrist_3_joint
+
+
+A list of the loaded and running controllers can be found by a call to the controller_manager 
+	rosservice call /controller_manager/list_controllers {}
+The running position trajectory controller can be stopped with a call to : 
+	rosservice call /controller_manager/switch_controller "start_controllers: - '' stop_controllers: - 'pos_based_pos_traj_controller' strictness: 1"
+
+
+---------------------------------------------------------------------------------------------
+
+VISUALISATION
+
+# ur_description (not working)
+roslaunch ur_description ur3_upload.launch
+roslaunch ur_description test.launch
+
+VISUALISATION WITH MOVEIT
+
+roslaunch ur3_moveit_config demo.launch
+rosrun ur_modern_driver move_group_ur3.py 		// I created the file
+
+---------------------------------------------------------------------------------------------
+
+SIMULATION
+
+roslaunch ur_gazebo ur3.launch
+roslaunch ur3_moveit_config ur3_moveit_planning_execution.launch sim:=true
+roslaunch ur3_moveit_config moveit_rviz.launch config:=true
+
+CAMERA
+
+http://ksimek.github.io/2012/08/14/decompose/
+https://github.com/IntelRealSense/librealsense/issues/1706
+https://stackoverflow.com/questions/47054848/converting-pixel-width-to-real-world-width-in-millimeters-using-camera-calibrati
+https://github.com/IntelRealSense/librealsense/issues/1904
+
+
+
+
+
+
+

@@ -1,0 +1,15 @@
+['', '/home/salwa/jbujalance/openpose_env/lib/python3.6', '/home/salwa/installations/caffe/python', '/home/salwa/installations/openpose/build/python/openpose', '/usr/local/lib', '/home/salwa/jbujalance/openpose_env/lib/python36.zip', '/home/salwa/jbujalance/openpose_env/lib/python3.6/lib-dynload', '/usr/lib/python3.6', '/home/salwa/jbujalance/openpose_env/lib/python3.6/site-packages']
+
+# add to .bashrc
+export PATH=/usr/local/cuda-10.1/bin:/usr/local/cuda-10.1/NsightCompute-2019.1${PATH:+:${PATH}}
+export PYTHONPATH="${PYTHONPATH}:$HOME/openpose/build/python/openpose"
+source /opt/ros/kinetic/setup.bash
+source /home/aimove/ros/ur_ws/devel/setup.bash
+source /home/aimove/ros/jogarm_ws/devel/setup.bash
+source /home/aimove/ros/urdriver_ironox_ws/devel/setup.bash
+
+# opendr install
+git clone "https://github.com/mattloper/opendr.git"
+cd opendr
+sudo git checkout 17ad5c4
+sudo python setup.py install

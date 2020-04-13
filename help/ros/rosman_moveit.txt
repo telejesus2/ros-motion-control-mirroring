@@ -1,0 +1,26 @@
+
+# donwloads if necessary
+sudo apt-get install ros-kinetic-catkin python-catkin-tools
+sudo apt install ros-kinetic-moveit
+
+# setup
+mkdir -p ~/ws_moveit/src
+cd ~/ws_moveit/src
+git clone -b kinetic-devel https://github.com/ros-planning/moveit_tutorials.git
+git clone -b kinetic-devel https://github.com/ros-planning/panda_moveit_config.git
+cd ~/ws_moveit/src
+rosdep install -y --from-paths . --ignore-src --rosdistro kinetic
+cd ~/ws_moveit
+catkin config --extend /opt/ros/kinetic
+catkin build
+source ~/ws_moveit/devel/setup.bash
+
+# launch demo
+roslaunch panda_moveit_config demo.launch rviz_tutorial:=true
+
+
+
+
+
+
+
