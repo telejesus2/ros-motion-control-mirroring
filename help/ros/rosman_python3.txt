@@ -1,0 +1,11 @@
+steps (tested on ROS/melodic Ubuntu 18.04):
+
+1.	Make a virtual env and install python3 within it. This is important since without the virtual env ubuntu (that comes with prebuilt python3 can cause conflicts with python2 used by ros).
+2.	Activate the virtual env.
+3.	Make a catkin workspace as usual for your custom project based on python3.
+4.	Set the environment variable ROS_PYTHON_VERSION=3
+5.	Build your project with catkin_make --cmake-args -DPYTHON_VERSION=3
+6.	Call launch files, nodes, etc as usual.
+
+
+there isn't any special configuration needed to use a virtualenv when developing Python nodes. I sourced devel/setup.bash in my ros workspace first, then sourced bin/activate in a virtualenv and found I was able to import modules from both the ros packages and the libraries installed in just the virtualenv.
