@@ -1,0 +1,107 @@
+https://dof.robotiq.com/discussion/735/how-can-i-make-a-ur5-draw-arcs-and-circles
+
+URScript Vs pure ROS + Moveit
+https://groups.google.com/forum/#!topic/swri-ros-pkg-dev/ceFrRb5YSAE
+
+ur3 does not move
+https://github.com/ros-industrial/ur_modern_driver/issues/118
+
+Ros controller for online inverse kinematic
+https://github.com/ros-industrial/ur_modern_driver/issues/163
+
+moveit and roscontrol
+https://answers.ros.org/question/246228/using-moveit-programmatically-and-integrating-with-ros_control/
+
+inverse kinematics
+https://answers.ros.org/question/58343/inverse-kinematics-algorithm-implementation/
+
+joint limits
+https://groups.google.com/forum/#!topic/moveit-users/WRijsQoBQj0
+
+quaternions
+https://answers.ros.org/question/9772/quaternions-orientation-representation/
+
+cartesian plan path
+https://answers.ros.org/question/74776/cartesian-controller-for-ros/
+
+real time 
+https://github.com/AndyZe/moveit/tree/melodic-devel/moveit_experimental/jog_arm
+
+srdf virtual joint
+https://groups.google.com/forum/#!topic/moveit-users/a3W5sQcxRAM
+
+orientation constraint
+https://answers.ros.org/question/254933/orientation-constrained-inverse-kinematics-in-moveit-is-not-working-on-baxter/
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+TUTORIALS
+
+move it tutorial
+http://docs.ros.org/kinetic/api/moveit_tutorials/html/doc/getting_started/getting_started.html
+
+gazebo ros control tutorial
+http://gazebosim.org/tutorials/?tut=ros_control
+
+gazebo tutorial
+http://gazebosim.org/tutorials
+
+actionlib tutorial
+http://wiki.ros.org/actionlib/Tutorials
+
+ros industrial tutorial
+https://industrial-training-master.readthedocs.io/en/kinetic/index.html
+
+robotics course
+https://see.stanford.edu/course/cs223a
+
+ros control tutorial
+https://github.com/PickNikRobotics/ros_control_boilerplate
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+QUATERNIONS
+The w term in a quaternion is the cosine of the half-angle of desired rotation around the (x,y,z) vector component. If you don't care about the angle of rotation, then w can be anything (subject to normalization requirements), including 0.
+
+IK
+For normal operations, MoveIt! only really calls an IK solver for one pose (maybe multiple times if the first result is invalid due to self collisions or the like). This IK solution provides a joint configuration for the goal. MoveIt! already knows the current joint configuration from encoder info. All planning at that point is done in JOINT SPACE. Collision detection and constraint checking may use Forward Kinematics to determine the pose of any subgoal joint configuration, but the planning IS NOT being done in Cartesian space. After a joint trajectory is found, MoveIt! tries to smooth the trajectory to make it less "crazy looking", but this does not always result in a path that is pleasing to human users.
+If you don't have obstacles in your space, you may want to try the Cartesian planning API in MoveIt! to get "straight-line" motion. MoveIt's Cartesian planner IS "planning" in Cartesian space (doing lots of IK calls). Though really it is just performing linear interpolation in x,y,z,roll,pitch,yaw between the current and desired poses -- it isn't really "searching" for a solution. That is, MoveIt's Cartesian capability is not doing collision avoidance or replanning -- if a collision is detected, the linear interpolation "planning" immediately stops. Unfortunately, in MoveIt! this scenario still returns True that a trajectory was found. 
+
+SINGULARITIES
+A condition caused by the collinear alignment of two or more robot axes resulting in unpredictable robot motion and velocities
+
+A kinematic singularity is a point within the robot's workspace where the robot's Jacobian matrix loses rank. The Jacobian is the matrix relating joint velocities to end effector velocities.
+
+Intuitively, for a standard six joint manipulator, this means that a kinematic singularity is a point in the workspace where the robot loses its ability to move the end effector in some direction no matter how it moves its joints. It typically occurs when two of the robot's joints line up, making them redundant.
+
+This is condition in which the manipulator loses one or more degrees of freedom and change in joint variables does not result in change in end effector location and orientation variables. This is a case when the determinant of Jacobian matrix is zero ie. It is rank deficit.
+
+PUMA robot vs UR robot : different singularities
+
+JOINT SPACE vs CARTESIAN SPACE
+
+TODO
+IKfast plugin / trac-IK
+ros_control moveit plugin
+path constraints		https://answers.ros.org/question/275877/path-constraints/
+joint limits			http://docs.ros.org/kinetic/api/moveit_tutorials/html/doc/robot_model_and_robot_state/robot_model_and_robot_state_tutorial.html
+				https://github.com/ros-controls/ros_control/tree/indigo-devel/joint_limits_interface
+jog arm				https://github.com/AndyZe/moveit/tree/kinetic-devel/moveit_experimental/jog_arm
+				https://github.com/UTNuclearRoboticsPublic/jog_arm/issues/75
+				https://github.com/ros-industrial/ur_modern_driver/issues/219
+				https://github.com/UTNuclearRoboticsPublic/jog_arm/issues/39
+				https://answers.ros.org/question/299622/looking-for-an-industry-robot-with-joint-velocity-control/
+				https://github.com/UTNuclearRoboticsPublic/jog_arm/issues/93
+gazebo
+
+
+
+go_to_joint_state uses a controller
+
+But you could do a workaround yourself. Track the distance between wrist and hand, combine it with the depth data, and check how far from the centre of your hand, the depth stays the same (following the same angle as wrist-hand has)
+
+
+gripper
+	header for urscript and ros https://gist.github.com/felixvd/4d5db1c297a3435cabb40c857eb6ead5
+	https://github.com/ros-industrial/ur_modern_driver/issues/162
+

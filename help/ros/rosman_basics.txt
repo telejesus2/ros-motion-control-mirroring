@@ -1,64 +1,3 @@
-https://dof.robotiq.com/discussion/735/how-can-i-make-a-ur5-draw-arcs-and-circles
-
-URScript Vs pure ROS + Moveit
-https://groups.google.com/forum/#!topic/swri-ros-pkg-dev/ceFrRb5YSAE
-
-ur3 does not move
-https://github.com/ros-industrial/ur_modern_driver/issues/118
-
-Ros controller for online inverse kinematic
-https://github.com/ros-industrial/ur_modern_driver/issues/163
-
-moveit and roscontrol
-https://answers.ros.org/question/246228/using-moveit-programmatically-and-integrating-with-ros_control/
-
-inverse kinematics
-https://answers.ros.org/question/58343/inverse-kinematics-algorithm-implementation/
-
-joint limits
-https://groups.google.com/forum/#!topic/moveit-users/WRijsQoBQj0
-
-quaternions
-https://answers.ros.org/question/9772/quaternions-orientation-representation/
-
-cartesian plan path
-https://answers.ros.org/question/74776/cartesian-controller-for-ros/
-
-real time 
-https://github.com/AndyZe/moveit/tree/melodic-devel/moveit_experimental/jog_arm
-
-srdf virtual joint
-https://groups.google.com/forum/#!topic/moveit-users/a3W5sQcxRAM
-
-orientation constraint
-https://answers.ros.org/question/254933/orientation-constrained-inverse-kinematics-in-moveit-is-not-working-on-baxter/
-
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-TUTORIALS
-
-move it tutorial
-http://docs.ros.org/kinetic/api/moveit_tutorials/html/doc/getting_started/getting_started.html
-
-gazebo ros control tutorial
-http://gazebosim.org/tutorials/?tut=ros_control
-
-gazebo tutorial
-http://gazebosim.org/tutorials
-
-actionlib tutorial
-http://wiki.ros.org/actionlib/Tutorials
-
-ros industrial tutorial
-https://industrial-training-master.readthedocs.io/en/kinetic/index.html
-
-robotics course
-https://see.stanford.edu/course/cs223a
-
-ros control tutorial
-https://github.com/PickNikRobotics/ros_control_boilerplate
-
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 INSTALL
 $ sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
@@ -149,48 +88,228 @@ catkin_make
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-QUATERNIONS
-The w term in a quaternion is the cosine of the half-angle of desired rotation around the (x,y,z) vector component. If you don't care about the angle of rotation, then w can be anything (subject to normalization requirements), including 0.
+Nodes: A node is an executable that uses ROS to communicate with other nodes.
 
-IK
-For normal operations, MoveIt! only really calls an IK solver for one pose (maybe multiple times if the first result is invalid due to self collisions or the like). This IK solution provides a joint configuration for the goal. MoveIt! already knows the current joint configuration from encoder info. All planning at that point is done in JOINT SPACE. Collision detection and constraint checking may use Forward Kinematics to determine the pose of any subgoal joint configuration, but the planning IS NOT being done in Cartesian space. After a joint trajectory is found, MoveIt! tries to smooth the trajectory to make it less "crazy looking", but this does not always result in a path that is pleasing to human users.
-If you don't have obstacles in your space, you may want to try the Cartesian planning API in MoveIt! to get "straight-line" motion. MoveIt's Cartesian planner IS "planning" in Cartesian space (doing lots of IK calls). Though really it is just performing linear interpolation in x,y,z,roll,pitch,yaw between the current and desired poses -- it isn't really "searching" for a solution. That is, MoveIt's Cartesian capability is not doing collision avoidance or replanning -- if a collision is detected, the linear interpolation "planning" immediately stops. Unfortunately, in MoveIt! this scenario still returns True that a trajectory was found. 
+Messages: ROS data type used when subscribing or publishing to a topic.
 
-SINGULARITIES
-A condition caused by the collinear alignment of two or more robot axes resulting in unpredictable robot motion and velocities
+Topics: Nodes can publish messages to a topic as well as subscribe to a topic to receive messages.
 
-A kinematic singularity is a point within the robot's workspace where the robot's Jacobian matrix loses rank. The Jacobian is the matrix relating joint velocities to end effector velocities.
+Master: Name service for ROS (i.e. helps nodes find each other)
 
-Intuitively, for a standard six joint manipulator, this means that a kinematic singularity is a point in the workspace where the robot loses its ability to move the end effector in some direction no matter how it moves its joints. It typically occurs when two of the robot's joints line up, making them redundant.
+rosout: ROS equivalent of stdout/stderr
 
-This is condition in which the manipulator loses one or more degrees of freedom and change in joint variables does not result in change in end effector location and orientation variables. This is a case when the determinant of Jacobian matrix is zero ie. It is rank deficit.
+roscore: Master + rosout + parameter server (parameter server will be introduced later) 
 
-PUMA robot vs UR robot : different singularities
+1. Topics should be used for continuous data streams (sensor data, robot state, ...).
 
-JOINT SPACE vs CARTESIAN SPACE
+2. Services should be used for remote procedure calls that terminate quickly, e.g. for querying the state of a node or doing a quick calculation such as IK. They should never be used for longer running processes, in particular processes that might be required to preempt (stop processing current goal(s) in favor of new goal(s) given) if exceptional situations occur and they should never change or depend on state to avoid unwanted side effects for other nodes.
 
-TODO
-IKfast plugin / trac-IK
-ros_control moveit plugin
-path constraints		https://answers.ros.org/question/275877/path-constraints/
-joint limits			http://docs.ros.org/kinetic/api/moveit_tutorials/html/doc/robot_model_and_robot_state/robot_model_and_robot_state_tutorial.html
-				https://github.com/ros-controls/ros_control/tree/indigo-devel/joint_limits_interface
-jog arm				https://github.com/AndyZe/moveit/tree/kinetic-devel/moveit_experimental/jog_arm
-				https://github.com/UTNuclearRoboticsPublic/jog_arm/issues/75
-				https://github.com/ros-industrial/ur_modern_driver/issues/219
-				https://github.com/UTNuclearRoboticsPublic/jog_arm/issues/39
-				https://answers.ros.org/question/299622/looking-for-an-industry-robot-with-joint-velocity-control/
-				https://github.com/UTNuclearRoboticsPublic/jog_arm/issues/93
-gazebo
+3. Actions should be used for everything that moves the robot or that runs for a longer time such as perception routines that are triggered by some node and need a couple of seconds to terminate. The most important property of actions is that they can be preempted and preemption should always be implemented cleanly by action servers. Another nice property of actions is that they can keep state for the lifetime of a goal, i.e. if executing two action goals in parallel on the same server, for each client a separate state instance can be kept since the goal is uniquely identified by its id.
+
+ROS actions are the best way to implement interfaces to time-extended, goal-oriented behaviors like goto_position .
+
+While services are synchronous, actions are asynchronous. Similar to the request and response of a service, an action uses a goal to initiate a behavior and sends a result when the behavior is complete. But the action further uses feedback to provide updates on the behavior’s progress toward the goal and also allows for goals to be canceled.
+
+Actions are themselves implemented internally using topics. It is essentially a higher-level protocol that specifies how a set of topics (goal, result, feedback, etc.) should be used in combination.
+
+----------------------------------------------------------------------------------------
+
+NODES
+
+$ roscore
+$ sudo chown -R <your_username> ~/.ros		// if roscore tells you you dont have permission
+
+in another terminal
+$ rosnode list
+$ rosnode info /rosout
+
+$ rosrun [package_name] [node_name]		// rosrun turtlesim turtlesim_node __name:=my_turtle
+$ rosnode ping my_turtle
+
+----------------------------------------------------------------------------------------
+
+TOPICS
+
+$ rosrun turtlesim turtle_teleop_key	// turtle_teleop_key is publishing the key strokes on a topic, while turtlesim subscribes to the same topic to receive the key strokes
+$ rosrun rqt_graph rqt_graph 		// to see a graph of the above
+
+$ rostopic echo [topic]			// rostopic echo /turtle1/cmd_vel to see their exchanges (note : rostopic is also a node so it will appear in the graph)	
+$ rostopic list -v
+
+the publisher and subscriber must send and receive the same type of message in order to communicate
+$ rostopic type [topic]			// rostopic type /turtle1/cmd_vel
+$ rosmsg show geometry_msgs/Twist
+
+rostopic pub publishes data on to a topic currently advertised
+$ rostopic pub [topic] [msg_type] [args]	// rostopic pub -1 /turtle1/cmd_vel geometry_msgs/Twist -- '[2.0, 0.0, 0.0]' '[0.0, 0.0, 1.8]'	(note: -1 causes rostopic to only publish one message then exit) 	// rostopic pub /turtle1/cmd_vel geometry_msgs/Twist -r 1 -- '[2.0, 0.0, 0.0]' '[0.0, 0.0, -1.8]' steady command
+
+reports the rate at which data is published
+rostopic hz [topic] 			// rostopic hz /turtle1/pose
+
+in depth info about a topic
+$ rostopic type /turtle1/cmd_vel | rosmsg show
+
+$ rosrun rqt_plot rqt_plot
+
+----------------------------------------------------------------------------------------
+
+SERVICES
+
+Request / reply is done via a Service, which is defined by a pair of messages: one for the request and one for the reply. A providing ROS node offers a service under a string name, and a client calls the service by sending the request message and awaiting the reply. Client libraries usually present this interaction to the programmer as if it were a remote procedure call. 
+
+rosservice list         print information about active services
+rosservice call         call the service with the provided args
+rosservice type         print service type
+rosservice find         find services by service type
+rosservice uri          print service ROSRPC uri
+
+$ rosservice list
+$ rosservice type [service]		// rosservice type /clear
+$ rosservice call [service] [args]	// rosservice call /clear
+ex :	rosservice type /spawn | rossrv show 
+	rosservice call /spawn 2 2 0.2 ""
+
+----------------------------------------------------------------------------------------
+
+PARAMETERS
+
+rosparam set [param_name]			set parameter
+rosparam get [param_name]			get parameter
+rosparam load [file_name] [namespace]		load parameters from file
+rosparam dump [file_name] [namespace]          	dump parameters to file
+rosparam delete         			delete parameter
+rosparam list           			list parameter names
+
+$ rosparam list
+$ rosparam set /background_r 150 	// followed by rosservice call /clear to take effect
+$ rosparam get /background_g 		// rosparam get / (to see everything)
+$ rosparam dump params.yaml		// write parameters to file
+$ rosparam load params.yaml copy	// load file into new namespace (ex: rosparam get /copy/background_b)
+
+----------------------------------------------------------------------------------------
+
+LOGGER AND CONSOLE
+
+$ rosrun rqt_console rqt_console
+$ rosrun rqt_logger_level rqt_logger_level
+
+----------------------------------------------------------------------------------------
+
+ROSLAUNCH
+
+$ roslaunch [package] [filename.launch] 	// starts nodes as defined in a launch file
+ex : 	$ roscd beginner_tutorials
+	$ mkdir launch
+	$ cd launch
+	create file turtlemimic.launch
+		<launch>
+
+		  <group ns="turtlesim1">
+		    <node pkg="turtlesim" name="sim" type="turtlesim_node"/>
+		  </group>
+
+		  <group ns="turtlesim2">
+		    <node pkg="turtlesim" name="sim" type="turtlesim_node"/>
+		  </group>
+
+		  <node pkg="turtlesim" name="mimic" type="mimic">
+		    <remap from="input" to="turtlesim1/turtle1"/>
+		    <remap from="output" to="turtlesim2/turtle1"/>
+		  </node>
+
+		</launch>
+	$ roslaunch beginner_tutorials turtlemimic.launch
+
+----------------------------------------------------------------------------------------
+
+ROS MSG AND SRV
+
+msg: msg files are simple text files that describe the fields of a ROS message. They are used to generate source code for messages in different languages. 
+ex :	Header header
+	string child_frame_id
+	geometry_msgs/PoseWithCovariance pose
+	geometry_msgs/TwistWithCovariance twist
+srv: an srv file describes a service. It is composed of two parts: a request and a response. 
+ex :	int64 A
+	int64 B
+	---
+	int64 Sum
+
+$ rosmsg show [message type]	// rosmsg show beginner_tutorials/Num // rosmsg show Num
+$ rossrv show <service type> 	// rossrv show beginner_tutorials/AddTwoInts  // rossrv show AddTwoInts
+
+how to do :
+
+	create msg
+	$ roscd beginner_tutorials
+	$ mkdir msg
+	$ echo "int64 num" > msg/Num.msg
+
+	create srv 
+	$ roscd beginner_tutorials
+	$ mkdir srv
+	$ roscp rospy_tutorials AddTwoInts.srv srv/AddTwoInts.srv
+
+	add to package.xml :
+		 <build_depend>message_generation</build_depend>
+		 <exec_depend>message_runtime</exec_depend>
+
+	add to CMakeLists.txt :
+		find_package(catkin REQUIRED COMPONENTS
+		   roscpp
+		   rospy
+		   std_msgs
+		   message_generation
+		)
+		catkin_package(
+		  ...
+		  CATKIN_DEPENDS message_runtime ...
+		  ...)
+		add_message_files(
+		  FILES
+		  Num.msg
+		)
+		add_service_files(
+		  FILES
+		  AddTwoInts.srv
+		)
+		generate_messages(
+		  DEPENDENCIES
+		  std_msgs
+		)
+
+	$ roscd beginner_tutorials
+	$ cd ../..
+	$ catkin_make install
+	$ cd -
 
 
+----------------------------------------------------------------------------------------
 
-go_to_joint_state uses a controller
+ROSBAG recording and playing back data
 
-But you could do a workaround yourself. Track the distance between wrist and hand, combine it with the depth data, and check how far from the centre of your hand, the depth stays the same (following the same angle as wrist-hand has)
+$ mkdir ~/bagfiles
+$ cd ~/bagfiles
+$ rosbag record -a 		// rosbag record -O subset /turtle1/cmd_vel /turtle1/pose  (only record those two topics in a file called subset.bag)
+		
+$ rosbag info <your bagfile>	// see the file
+$ rosbag play <your bagfile>	// play the file
+
+----------------------------------------------------------------------------------------
+
+ROSWTF
+
+you can use it online (roscore running) or offline to detect warnings and erros
+
+$ roscd <package>
+$ roswtf 
+
+ [1556641746.297292]: header: 
+  seq: 0
+  stamp: 
+    secs: 1556641746.3
+    nsecs:         0
+  frame_id: ''
 
 
-gripper
-	header for urscript and ros https://gist.github.com/felixvd/4d5db1c297a3435cabb40c857eb6ead5
-	https://github.com/ros-industrial/ur_modern_driver/issues/162
 
